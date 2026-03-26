@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visible Frequencies</title>
+  <style>
+    :root {
+      --bg: #f5f5f2;
+      --bg-2: #ffffff;
+      --panel: rgba(255,255,255,0.82);
+      --panel-strong: rgba(255,255,255,0.9);
+      --text: #111111;
+      --muted: #5f5f5f;
+      --accent: #111111;
+      --accent-2: #1a1a1a;
+      --border: rgba(0,0,0,0.06);
+      --shadow: 0 20px 50px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      background:
+        radial-gradient(circle at 18% 0%, rgba(255, 160, 210, 0.08), transparent 26%),
+        radial-gradient(circle at 82% 8%, rgba(140, 180, 255, 0.08), transparent 22%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow-x: hidden;
+    }
+    .shell {
+      width: min(1320px, calc(100vw - 24px));
+      margin: 0 auto;
+    }
+    header {
+      padding: 22px 0 14px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+    }
+    .brand-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff8fb8, #ffca7a, #ffe8a8, #a8ebb7, #a7c2ff, #cab1ff);
+      box-shadow: 0 0 22px rgba(136, 182, 255, 0.8);
+    }
+    .brand span {
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      font-weight: 700;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      align-items: end;
+    }
+    .hero-copy h1 {
+      margin: 0;
+      font-size: clamp(42px, 5.8vw, 82px);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+    .hero-copy p {
+      margin: 16px 0 0;
+      max-width: 760px;
+      color: #4f4f4f;
+      font-size: clamp(16px, 1.6vw, 20px);
+      line-height: 1.6;
+    }
+    .hero-card {
+      padding: 18px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      border: 1px solid var(--border);
+      backdrop-filter: blur(22px);
+      box-shadow: var(--shadow);
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .stat {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .stat .kicker {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4f4f4f;
+      margin-bottom: 8px;
+    }
+    .stat .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stage {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 18px;
+      margin-bottom: 22px;
+    }
+    .sidebar {
+      padding: 18px;
+      border-radius: 30px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(22px);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .section-title {
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .section-copy {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #4f4f4f;
+      margin: 0;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    label {
+      font-size: 13px;
+      color: #1a1a1a;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    button, select, input[type="range"], input[type="file"] {
+      width: 100%;
+    }
+    button, select, .file-label {
+      min-height: 50px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+    button {
+      background: #111111;
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+      border: 0;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+      letter-spacing: 0.01em;
+    }
+    button:hover { filter: brightness(1.06); }
+    button.secondary {
+      background: rgba(255,255,255,0.82);
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+    .file-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+    }
+    input[type="file"] { display: none; }
+    input[type="range"] {
+      accent-color: var(--accent);
+    }
+    .small {
+      min-height: 18px;
+      font-size: 12px;
+      color: #4f4f4f;
+    }
+
+    .color-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .color-control input[type="color"] {
+      width: 100%;
+      height: 50px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 4px;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+    }
+
+    .visual-wrap {
+      position: relative;
+      min-height: 760px;
+      border-radius: 36px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.92);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+    .visual-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.35), transparent 58%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: relative;
+      z-index: 0;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .badge-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px);
+      font-size: 13px;
+      color: #1a1a1a;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff8fb8, #ffca7a, #ffe8a8, #a8ebb7, #a7c2ff, #cab1ff);
+      box-shadow: 0 0 18px rgba(145,186,255,0.85);
+    }
+    .bottom-panel {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: end;
+      z-index: 2;
+    }
+    .caption-card,
+    .source-card {
+      padding: 14px 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+      max-width: 420px;
+    }
+    .caption-card h2,
+    .source-card h2 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+    }
+    .caption-card p,
+    .source-card p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #4f4f4f;
+    }
+    .presentation-hidden .sidebar,
+    .presentation-hidden header,
+    .presentation-hidden .minimal-note {
+      display: none;
+    }
+    .presentation-hidden .shell {
+      width: 100vw;
+      margin: 0;
+    }
+    .presentation-hidden .stage {
+      grid-template-columns: 1fr;
+      margin: 0;
+    }
+    .presentation-hidden .visual-wrap {
+      min-height: 100vh;
+      border-radius: 0;
+      border: 0;
+    }
+    .presentation-hidden .bottom-panel {
+      bottom: 22px;
+    }
+    .presentation-hidden .badge-row {
+      padding: 22px;
+    }
+    .fade-in {
+      animation: fadeInUp 900ms ease both;
+    }
+    .fade-delay-1 { animation-delay: 120ms; }
+    .fade-delay-2 { animation-delay: 240ms; }
+    .fade-delay-3 { animation-delay: 360ms; }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .minimal-note {
+      text-align: center;
+      color: #4f4f4f;
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 0 0 24px;
+    }
+    audio { display: none; }
+    @media (max-width: 1100px) {
+      .hero { grid-template-columns: 1fr; }
+      .stage { grid-template-columns: 1fr; }
+      .visual-wrap { min-height: 640px; }
+    }
+    @media (max-width: 760px) {
+      .shell { width: min(1320px, calc(100vw - 16px)); }
+      .topbar { margin-bottom: 10px; }
+      .hero-copy p { font-size: 16px; }
+      .sidebar { order: 2; }
+      .visual-wrap { min-height: 520px; }
+      .hero-stats { grid-template-columns: 1fr; }
+      .bottom-panel {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .badge-row { padding: 12px; flex-direction: column; align-items: flex-start; }
+      .caption-card, .source-card { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="topbar">
+        <div class="brand"><div class="brand-dot"></div><span>Visible Frequencies</span></div>
+      </div>
+      <div class="hero">
+        <div class="hero-copy fade-in">
+          <h1>Cymatics Visualizer: Where Sound Becomes Form</h1>
+          <p>
+            A real-time platform at the intersection of music, science, and technology, transforming sound into dynamic cymatic visuals for both Deaf and hearing communities, performers, educators, and beyond. Rooted in the physics of vibration, it reveals the structure and emotion of music through responsive, immersive patterns.
+          </p>
+        </div>
+        <div class="hero-card fade-in fade-delay-1">
+          <div class="hero-stats">
+            <div class="stat">
+              <div class="kicker">Input</div>
+              <div class="value" id="statInput">None</div>
+            </div>
+            <div class="stat">
+              <div class="kicker">Mode</div>
+              <div class="value" id="statMode">Rings</div>
+            </div>
+            <div class="stat">
+              <div class="kicker">Status</div>
+              <div class="value" id="statStatus">Ready</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <aside class="sidebar fade-in fade-delay-2">
+        <div>
+          <div class="section-title">Control panel</div>
+          <p class="section-copy">Keep this visible while setting up, then go full screen for a cleaner installation view.</p>
+        </div>
+
+        <div class="control-group">
+          <div class="control">
+            <label for="startBtn">Live microphone</label>
+            <button id="startBtn">Start Microphone</button>
+          </div>
+
+          <div class="control">
+            <label for="audioFile">Upload audio</label>
+            <label class="file-label" for="audioFile">Choose Audio File</label>
+            <input id="audioFile" type="file" accept="audio/*" />
+            <div class="small" id="fileName">No file selected</div>
+          </div>
+
+          <div class="control">
+            <label for="mode">Pattern mode</label>
+            <select id="mode">
+              <option value="rings">Radial Rings</option>
+              <option value="ripple">Ripple Field</option>
+              <option value="chladni">Chladni-Inspired</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="sensitivity">Sensitivity</label>
+            <input id="sensitivity" type="range" min="0.6" max="3" step="0.1" value="1.7" />
+          </div>
+
+          <div class="control">
+            <label for="glow">Glow</label>
+            <input id="glow" type="range" min="0" max="50" step="1" value="22" />
+          </div>
+
+          <div class="control">
+            <label>Gradient colors</label>
+            <div class="small">Choose a softer or bolder ombré for the live visuals.</div>
+            <div class="color-row">
+              <div class="color-control"><input id="color1" type="color" value="#ff5fa2" /></div>
+              <div class="color-control"><input id="color2" type="color" value="#7aa2ff" /></div>
+              <div class="color-control"><input id="color3" type="color" value="#7ee787" /></div>
+            </div>
+          </div>
+
+          <div class="control">
+            <label for="fullscreenBtn">Presentation</label>
+            <button class="secondary" id="fullscreenBtn">Go Full Screen</button>
+          </div>
+
+          <div class="control">
+            <label for="presentationModeBtn">Installation mode</label>
+            <button class="secondary" id="presentationModeBtn">Enter Presentation Mode</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="visual-wrap fade-in fade-delay-3" id="canvasWrap">
+        <canvas id="viz"></canvas>
+        <div class="overlay">
+          <div class="badge-row">
+            <div class="badge"><span class="dot"></span><span id="modeBadge">Mode: Radial Rings</span></div>
+            <div class="badge"><span class="dot"></span><span id="status">Waiting to begin</span></div>
+          </div>
+          <div class="bottom-panel">
+            <div class="caption-card">
+              <h2>Installation View</h2>
+              <p>Sound becomes form through live, cymatics-inspired motion. Use a mic for participation or upload a track for a guided performance.</p>
+            </div>
+            <div class="source-card">
+              <h2>Active Source</h2>
+              <p id="sourceText">No input selected yet.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <audio id="audioPlayer" controls></audio>
+
+    <p class="minimal-note">
+      Best in Chrome or Safari. For a gallery-style presentation, start the sound source, then enter full screen.
+    </p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('viz');
+    const ctx = canvas.getContext('2d');
+    const canvasWrap = document.getElementById('canvasWrap');
+    const statusEl = document.getElementById('status');
+    const modeBadgeEl = document.getElementById('modeBadge');
+    const startBtn = document.getElementById('startBtn');
+    const modeEl = document.getElementById('mode');
+    const sensitivityEl = document.getElementById('sensitivity');
+    const glowEl = document.getElementById('glow');
+    const color1El = document.getElementById('color1');
+    const color2El = document.getElementById('color2');
+    const color3El = document.getElementById('color3');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const audioFileEl = document.getElementById('audioFile');
+    const fileNameEl = document.getElementById('fileName');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const statInputEl = document.getElementById('statInput');
+    const statModeEl = document.getElementById('statMode');
+    const statStatusEl = document.getElementById('statStatus');
+    const sourceTextEl = document.getElementById('sourceText');
+    const presentationModeBtn = document.getElementById('presentationModeBtn');
+
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let timeArray;
+    let source;
+    let currentStream;
+    let smoothVolume = 0;
+    let smoothPitch = 0;
+    let ripplePhase = 0;
+    let currentSourceType = 'none';
+
+    function resizeCanvas() {
+      const ratio = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function updateDashboard() {
+      const modeText = modeEl.options[modeEl.selectedIndex].text;
+      const sourceMap = {
+        none: 'None',
+        mic: 'Microphone',
+        file: 'Audio File'
+      };
+      statModeEl.textContent = modeText.replace('Radial ', '').replace('-Inspired', '');
+      statInputEl.textContent = sourceMap[currentSourceType] || 'None';
+      statStatusEl.textContent = statusEl.textContent.replace('Waiting to begin', 'Ready');
+      modeBadgeEl.textContent = `Mode: ${modeText}`;
+    }
+
+    function ensureAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      if (!analyser) {
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.85;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        timeArray = new Uint8Array(analyser.fftSize);
+      }
+    }
+
+    function disconnectCurrentSource() {
+      if (source) {
+        try { source.disconnect(); } catch (e) {}
+      }
+      source = null;
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+      }
+      if (audioPlayer.src) {
+        audioPlayer.pause();
+      }
+    }
+
+    async function startMicrophone() {
+      try {
+        ensureAudioContext();
+        disconnectCurrentSource();
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        currentStream = stream;
+        source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        currentSourceType = 'mic';
+        statusEl.textContent = 'Mic live';
+        startBtn.textContent = 'Microphone Connected';
+        sourceTextEl.textContent = 'Live microphone input is driving the visuals in real time.';
+        updateDashboard();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Mic access denied';
+        sourceTextEl.textContent = 'Microphone permission was denied by the browser.';
+        updateDashboard();
+        alert('Microphone access was blocked. Please allow microphone permission and reload the page.');
+      }
+    }
+
+    async function loadAudioFile(file) {
+      if (!file) return;
+      try {
+        ensureAudioContext();
+        disconnectCurrentSource();
+        const objectUrl = URL.createObjectURL(file);
+        audioPlayer.src = objectUrl;
+        audioPlayer.loop = true;
+        audioPlayer.crossOrigin = 'anonymous';
+        source = audioContext.createMediaElementSource(audioPlayer);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        await audioPlayer.play();
+        currentSourceType = 'file';
+        statusEl.textContent = 'Audio file playing';
+        fileNameEl.textContent = file.name;
+        sourceTextEl.textContent = `Uploaded track: ${file.name}`;
+        updateDashboard();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Could not play file';
+        sourceTextEl.textContent = 'The selected audio file could not be played.';
+        updateDashboard();
+        alert('That audio file could not be played in the browser. Try another mp3 or wav file.');
+      }
+    }
+
+    startBtn.addEventListener('click', startMicrophone);
+
+    audioFileEl.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      loadAudioFile(file);
+    });
+
+    modeEl.addEventListener('change', updateDashboard);
+
+    presentationModeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('presentation-hidden');
+      const active = document.body.classList.contains('presentation-hidden');
+      presentationModeBtn.textContent = active ? 'Exit Presentation Mode' : 'Enter Presentation Mode';
+      setTimeout(resizeCanvas, 120);
+    });
+
+    fullscreenBtn.addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) {
+          await canvasWrap.requestFullscreen();
+          fullscreenBtn.textContent = 'Exit Full Screen';
+        } else {
+          await document.exitFullscreen();
+          fullscreenBtn.textContent = 'Go Full Screen';
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Full Screen' : 'Go Full Screen';
+      setTimeout(resizeCanvas, 100);
+    });
+
+    function getAudioFeatures() {
+      if (!analyser) {
+        return { volume: 0, bass: 0, mids: 0, treble: 0, centroid: 0 };
+      }
+
+      analyser.getByteFrequencyData(dataArray);
+      analyser.getByteTimeDomainData(timeArray);
+
+      let sumSquares = 0;
+      for (let i = 0; i < timeArray.length; i++) {
+        const normalized = (timeArray[i] - 128) / 128;
+        sumSquares += normalized * normalized;
+      }
+      const rms = Math.sqrt(sumSquares / timeArray.length);
+
+      const binWidth = audioContext.sampleRate / analyser.fftSize;
+      let bass = 0, bassCount = 0;
+      let mids = 0, midsCount = 0;
+      let treble = 0, trebleCount = 0;
+      let weightedSum = 0;
+      let magnitudeSum = 0;
+
+      for (let i = 0; i < dataArray.length; i++) {
+        const freq = i * binWidth;
+        const mag = dataArray[i] / 255;
+
+        if (freq < 250) { bass += mag; bassCount++; }
+        else if (freq < 2000) { mids += mag; midsCount++; }
+        else if (freq < 8000) { treble += mag; trebleCount++; }
+
+        weightedSum += freq * mag;
+        magnitudeSum += mag;
+      }
+
+      return {
+        volume: rms,
+        bass: bassCount ? bass / bassCount : 0,
+        mids: midsCount ? mids / midsCount : 0,
+        treble: trebleCount ? treble / trebleCount : 0,
+        centroid: magnitudeSum ? weightedSum / magnitudeSum : 0,
+      };
+    }
+
+
+    function hexToRgb(hex) {
+      const clean = hex.replace('#', '');
+      const bigint = parseInt(clean, 16);
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+      };
+    }
+
+    function rgbaFromHex(hex, alpha) {
+      const { r, g, b } = hexToRgb(hex);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function createRainbowStroke(alphaBase = 0.55) {
+      const grad = ctx.createLinearGradient(0, 0, canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
+      grad.addColorStop(0, rgbaFromHex(color1El.value, alphaBase));
+      grad.addColorStop(0.5, rgbaFromHex(color2El.value, alphaBase));
+      grad.addColorStop(1, rgbaFromHex(color3El.value, alphaBase));
+      return grad;
+    }
+
+    function drawBackground(w, h, volume) {
+      const grad = ctx.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, Math.max(w, h) * 0.72);
+      grad.addColorStop(0, rgbaFromHex(color1El.value, 0.06 + volume * 0.06));
+      grad.addColorStop(0.5, rgbaFromHex(color2El.value, 0.05 + volume * 0.05));
+      grad.addColorStop(1, 'rgba(255,255,255,0.995)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    function drawRings(w, h, f) {
+      const cx = w / 2;
+      const cy = h / 2;
+      const sensitivity = parseFloat(sensitivityEl.value);
+      const glow = parseFloat(glowEl.value);
+      const volume = f.volume * sensitivity;
+      const rings = Math.max(7, Math.floor(8 + (f.centroid / 300)));
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = glow;
+      ctx.shadowColor = 'rgba(190, 220, 255, 0.74)';
+
+      for (let r = 1; r <= rings; r++) {
+        const baseRadius = 26 + r * 24 + f.bass * 48;
+        ctx.beginPath();
+        for (let a = 0; a <= Math.PI * 2 + 0.05; a += 0.055) {
+          const wobble = Math.sin(a * (3 + r * 0.28) + performance.now() * 0.002) * (10 + f.treble * 30) * volume;
+          const ripple = Math.cos(a * (6 + f.mids * 10)) * (6 + f.bass * 13) * volume;
+          const radius = baseRadius + wobble + ripple;
+          const x = Math.cos(a) * radius;
+          const y = Math.sin(a) * radius;
+          if (a === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        const alpha = Math.max(0.08, 0.58 - r * 0.032 + volume * 0.22);
+        ctx.strokeStyle = createRainbowStroke(Math.min(1, alpha));
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawRipple(w, h, f) {
+      const sensitivity = parseFloat(sensitivityEl.value);
+      const glow = parseFloat(glowEl.value);
+      const volume = f.volume * sensitivity;
+      ripplePhase += 0.024 + volume * 0.08;
+
+      ctx.save();
+      ctx.lineWidth = 1.15;
+      ctx.shadowBlur = glow;
+      ctx.shadowColor = 'rgba(190, 220, 255, 0.58)';
+
+      const spacing = 15;
+      for (let y = spacing; y < h; y += spacing) {
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 8) {
+          const dx = x - w / 2;
+          const dy = y - h / 2;
+          const dist = Math.sqrt(dx * dx + dy * dy) * 0.02;
+          const wave = Math.sin(dist * (4 + f.centroid / 1000) - ripplePhase * (2 + f.bass * 4));
+          const wave2 = Math.cos(x * 0.012 + ripplePhase + y * 0.01) * f.treble * 18;
+          const offset = wave * volume * 50 + wave2;
+          const yy = y + offset;
+          if (x === 0) ctx.moveTo(x, yy);
+          else ctx.lineTo(x, yy);
+        }
+        ctx.strokeStyle = createRainbowStroke(Math.min(1, 0.22 + volume * 0.45));
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawChladni(w, h, f) {
+      const sensitivity = parseFloat(sensitivityEl.value);
+      const glow = parseFloat(glowEl.value);
+      const volume = Math.max(0.12, f.volume * sensitivity);
+      const cx = w / 2;
+      const cy = h / 2;
+      const scale = Math.min(w, h) * 0.36;
+      const m = 2 + Math.floor(f.bass * 10 + 2);
+      const n = 3 + Math.floor(f.mids * 14 + 2);
+      const t = performance.now() * 0.00125;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.shadowBlur = glow;
+      ctx.shadowColor = 'rgba(185, 220, 255, 0.42)';
+
+      for (let ix = -38; ix <= 38; ix++) {
+        for (let iy = -26; iy <= 26; iy++) {
+          const x = ix / 38;
+          const y = iy / 26;
+          const value = Math.sin(m * Math.PI * x + t) * Math.sin(n * Math.PI * y)
+                      - Math.sin(n * Math.PI * x) * Math.sin(m * Math.PI * y - t);
+          if (Math.abs(value) < 0.12 + f.treble * 0.08) {
+            const px = x * scale + Math.sin(t + iy) * volume * 10;
+            const py = y * scale + Math.cos(t + ix) * volume * 10;
+            const size = 1.4 + volume * 3.4;
+            ctx.fillStyle = createRainbowStroke(Math.min(1, 0.25 + volume * 0.45));
+            ctx.beginPath();
+            ctx.arc(px, py, size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawIdle(w, h) {
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      ctx.shadowBlur = 28;
+      ctx.shadowColor = 'rgba(185, 220, 255, 0.22)';
+      for (let i = 0; i < 11; i++) {
+        ctx.beginPath();
+        ctx.arc(0, 0, 52 + i * 28, 0, Math.PI * 2);
+        ctx.strokeStyle = createRainbowStroke(0.10 + i * 0.03);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function animate() {
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+      ctx.clearRect(0, 0, w, h);
+
+      const features = getAudioFeatures();
+      smoothVolume += (features.volume - smoothVolume) * 0.12;
+      smoothPitch += (features.centroid - smoothPitch) * 0.08;
+      const smoothed = { ...features, volume: smoothVolume, centroid: smoothPitch };
+
+      drawBackground(w, h, smoothed.volume);
+
+      if (currentSourceType === 'none') {
+        drawIdle(w, h);
+      } else {
+        const mode = modeEl.value;
+        if (mode === 'rings') drawRings(w, h, smoothed);
+        if (mode === 'ripple') drawRipple(w, h, smoothed);
+        if (mode === 'chladni') drawChladni(w, h, smoothed);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    updateDashboard();
+    animate();
+  </script>
+</body>
+</html>
